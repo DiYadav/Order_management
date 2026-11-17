@@ -13,7 +13,7 @@ class Order(models.Model):
         DELIVERED = "DELIVERED", "Delivered"
         CANCELLED = "CANCELLED", "Cancelled"
 
-    customer_id=models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="orders")
+    customer=models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="orders")
     order_date=models.DateTimeField(auto_now_add=True)
     total_amount=models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
     status=models.CharField(max_length=20, choices=OrderStatus.choices, default=OrderStatus.PENDING)
@@ -22,12 +22,6 @@ class Order(models.Model):
         return f" Order {self.id} - {self.customer.email}"
 
     class Meta:
-        constraints=[
-            models.CheckConstraint(
-                condition=models.Q(quatity__gte=1),
-                name="order_item_quantity_gte_1"
-            )
-        ]
         ordering=["-order_date"]
 
 class OrderItem(models.Model):
@@ -42,4 +36,12 @@ class OrderItem(models.Model):
     @property
     def subtotal(self):
         return self.quantity * self.unit_price
+
+    class Meta:
+        constraints=[
+            models.CheckConstraint(
+                condition=models.Q(quantity__gte=1),
+                name="order_item_quantity_gte_1"
+            )
+        ]
     
